@@ -1,0 +1,7 @@
+git status                              ver--cambios
+git branch                              ver--ramas
+git checkout (nombre_rama)              cambiar de rama
+git add .                               agregar cambios
+git commit -m "DESCRIPCION"             guardar-cambios-local
+git push -u origin RAMA                 subir-datos-servidor-web-GIT
+git checkout -b (nombre_rama)           crear nueva rama

@@ -1,0 +1,217 @@
+<!-- Modal muestra la foto -->
+    <div id="modalFoto" class="modal" style="display:none;">
+        <span class="close" onclick="cerrarModal()">&times;</span>
+        <img id="imgModal" src="" alt="Foto del miembro" style="max-width:300px; max-height:300px; border-radius:10px;">
+    </div>
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-|: center;
+        }
+
+        .modal .close {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            color: #fff;
+            font-size: 40px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        function verFoto(base64) {
+            document.getElementById('imgModal').src = "data:image/jpeg;base64," + base64;
+            document.getElementById('modalFoto').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalFoto').style.display = 'none';
+        }
+    </script>
+
+
+
+
+
+
+    function exportarPDF_ce() {
+    const { jsPDF } = window.jspdf;
+    var doc = new jsPDF('l', 'mm', 'a4'); // L= Horizontal
+
+    doc.setFontSize(16);
+    doc.text("Gestión de células", 148, 15, { align: "center" });
+
+    var table = document.getElementById("data_table");
+    var rows = table.rows;
+    let startX = 10;
+    let startY = 30;
+    let cellWidth = [10, 60, 45, 60, 25, 25, 47];
+    let cellHeight = 10;
+    let numCols = cellWidth.length;
+
+    // Encabezados
+    doc.setFontSize(12);
+    let x = startX;
+    for (let j = 0; j < numCols; j++) {
+        doc.text(rows[0].cells[j].innerText, x + 2, startY + 7);
+        doc.rect(x, startY, cellWidth[j], cellHeight);
+        x += cellWidth[j];
+    }
+
+    // Filas de datos (ajuste de texto y altura dinámica)
+    let y = startY + cellHeight;
+    for (let i = 1; i < rows.length; i++) {
+        x = startX;
+        let maxLines = 1;
+        let splitTexts = [];
+        // Calcula el máximo de líneas para la fila
+        for (let j = 0; j < numCols; j++) {
+            let text = rows[i].cells[j].innerText;
+            let splitText = doc.splitTextToSize(text, cellWidth[j] - 4);
+            splitTexts.push(splitText);
+            if (splitText.length > maxLines) maxLines = splitText.length;
+        }
+        let rowHeight = cellHeight * maxLines;
+        // Dibuja las celdas y el texto
+        for (let j = 0; j < numCols; j++) {
+            doc.rect(x, y, cellWidth[j], rowHeight);
+            doc.text(splitTexts[j], x + 2, y + 7);
+            x += cellWidth[j];
+        }
+        y += rowHeight;
+    }
+
+    doc.save('celulas.pdf');
+}
+
+<form class="frm_crear_u" method="POST" action="../database/m_crear_ministerio.php" enctype="multipart/form-data">
+
+                    <div class="header_form">
+                        <h1 align="center"><i class="las la-heart"></i> <br> Crear ministerio</h1>
+                        <br>
+                        <hr width="750px"><br>
+                    </div>
+                    <br>
+                    <div class="body_form">
+                        <div class="left-column">
+                            <input type="text" name="nombre_ministerio" value="" placeholder="Nombre del ministerio">
+                            <input type="text" name="descripcion_m" value="" placeholder="Descripción del ministerio:">
+                        </div>
+
+                    </div><br>
+                    
+                    <div class="butonnn">
+                        <button type="submit" value="Registrar" name="save_ministerio">Guardar</button>
+                        <button type="button" onclick="window.location='../views/v-id-gestion-celulas.php'">Regresar</button>
+                    </div>
+                </form>.
+
+                <div class="input-group">
+                                <input type="date" id="fecha-inau" name="fecha-inaug" class="input-date" placeholder=" " />
+                                <label for="fecha-inau" class="floating-label">Fecha de inauguración</label>
+                            </div>
+
+                            <?php
+// ...existing code...
+
+<?php
+// ...existing code...
+
+// Datos del miembro (a la derecha de la foto) y mostrar ID/Estado debajo de la foto
+$startX = $photoX + $photoW + 6;
+$lineHeight = 6;
+
+// helper: normaliza texto desde la BD para FPDF (convierte UTF-8 -> ISO-8859-1)
+function safeText($v) {
+    $v = trim($v ?? '');
+    // si ya está vacío devolver vacío
+    if ($v === '') return '';
+    // aplicar utf8_decode para que FPDF muestre tildes correctamente
+    return utf8_decode($v);
+}
+
+// Preparar texto y estado (usar safeText)
+$nombre = safeText($data['nombre_completo'] ?? '');
+$dpi = $data['dpi'] ?? '';
+// Formatear fecha a DD/mm/AA (si quieres 4 dígitos usar d/m/Y)
+$fechaNacRaw = $data['fecha_nacimiento'] ?? '';
+$fechaNac = '';
+if (!empty($fechaNacRaw) && ($ts = strtotime($fechaNacRaw))) {
+    $fechaNac = date('d/m/y', $ts); // dd/mm/aa
+}
+$genero = isset($data['genero']) ? ($data['genero'] == 1 ? 'Masculino' : 'Femenino') : '';
+$celula = safeText($data['nombre_celula'] ?? '');
+$ministerio = safeText($data['nombre_ministerio'] ?? '');
+$estadoTxt = (isset($data['estado']) && $data['estado'] == 1) ? 'Activo' : 'Inactivo';
+
+// Nombre: limitar ancho y permitir wrap (ya está en ISO-8859-1)
+$pdf->SetFont('Arial', 'B', 10);
+$pdf->SetXY($startX, 18);
+$rightWidth = $pageWidth - $startX - 5; // ancho disponible a la derecha de la foto
+$pdf->MultiCell($rightWidth, $lineHeight, $nombre, 0, 'L');
+
+// Otros campos (alineados a la misma X, usando el ancho calculado)
+$pdf->SetFont('Arial', '', 9);
+$pdf->SetX($startX);
+$pdf->Cell($rightWidth, $lineHeight, safeText('DPI: ') . $dpi, 0, 1);
+
+$pdf->SetX($startX);
+$pdf->Cell($rightWidth, $lineHeight, safeText('Fecha Nac.: ') . $fechaNac, 0, 1);
+
+$pdf->SetX($startX);
+$pdf->Cell($rightWidth, $lineHeight, safeText('Edad: ') . ($data['edad'] ?? ''), 0, 1);
+
+$pdf->SetX($startX);
+$pdf->Cell($rightWidth, $lineHeight, safeText('Género: ') . safeText($genero), 0, 1);
+
+$pdf->SetX($startX);
+$pdf->Cell($rightWidth, $lineHeight, safeText('Célula: ') . $celula, 0, 1);
+
+$pdf->SetX($startX);
+$pdf->Cell($rightWidth, $lineHeight, safeText('Ministerio: ') . $ministerio, 0, 1);
+
+// Mostrar ID y Estado debajo de la foto (centrado dentro del cuadro de la foto)
+$pdf->SetFont('Arial', '', 9);
+$pdf->SetXY($photoX, $photoY + $photoH + 2);
+$pdf->Cell($photoW, 5, 'ID: ' . ($data['id_miembro'] ?? ''), 0, 1, 'C');
+$pdf->SetX($photoX);
+$pdf->Cell($photoW, 5, safeText('Estado: ') . safeText($estadoTxt), 0, 1, 'C');
+
+// Línea separadora
+$yAfter = max($photoY + $photoH + 12, $pdf->GetY()) + 2;
+$pdf->SetDrawColor(160);
+$pdf->Line(5, $yAfter, $pageWidth - 5, $yAfter);
+
+// ...existing code...
+
+
+
+
+
+
+
+
+<select class="form-control" name="celula-select" requierd>
+
+                            <option disabled selected value=""> ¡Seleccione una célula! </option>
+                            <option value="">No asignado</option>
+                            <?php
+                            include "../database/conexion.php";
+                            $query = mysqli_query($conection, "SELECT * FROM celula ORDER BY id_celula ASC");
+                            $result = mysqli_num_rows($query);
+                            if ($result > 0) {
+                                while ($data = mysqli_fetch_assoc($query)) {
+                                    
+                            ?>
+                                    <option value="<?php echo $data['id_celula']; ?>"> <?php echo $data['nombre_celula']; ?></option>
+                                <?php } ?>
+
+                        </select>
